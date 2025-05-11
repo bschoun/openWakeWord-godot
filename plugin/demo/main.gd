@@ -1,16 +1,27 @@
-extends Node2D
+extends OpenWakeWord
 
-# TODO: Update to match your plugin's name
-var _plugin_name = "GodotAndroidPluginTemplate"
-var _android_plugin
+@export var label : Label
+@export var button : Button
 
-func _ready():
-	if Engine.has_singleton(_plugin_name):
-		_android_plugin = Engine.get_singleton(_plugin_name)
+func _ready() -> void:
+	super()
+	label.text = ""
+	button.text = "Start"
+
+func _on_wakeword_detected():
+	super()
+	label.text = "WAKE WORD DETECTED"
+	
+func _on_timer_timeout():
+	super()
+	label.text = ""
+
+func _on_start_stop_button_toggled(toggled_on: bool) -> void:
+	if toggled_on:
+		
+		# TODO: replace with name of your model in assets folder
+		start_detection("galaxy.onnx")
+		button.text = "Stop"
 	else:
-		printerr("Couldn't find plugin " + _plugin_name)
-
-func _on_Button_pressed():
-	if _android_plugin:
-		# TODO: Update to match your plugin's API
-		_android_plugin.helloWorld()
+		stop_detection()
+		button.text = "Start"

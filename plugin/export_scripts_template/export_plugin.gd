@@ -18,7 +18,7 @@ func _exit_tree():
 
 class AndroidExportPlugin extends EditorExportPlugin:
 	# TODO: Update to your plugin's name.
-	var _plugin_name = "GodotAndroidPluginTemplate"
+	var _plugin_name = "OpenWakeWord"
 
 	func _supports_platform(platform):
 		if platform is EditorExportPlatformAndroid:
@@ -34,9 +34,9 @@ class AndroidExportPlugin extends EditorExportPlugin:
 	func _get_android_dependencies(platform, debug):
 		# TODO: Add remote dependices here.
 		if debug:
-			return PackedStringArray([])
+			return PackedStringArray(["com.microsoft.onnxruntime:onnxruntime-android:1.16.0-rc1"])
 		else:
-			return PackedStringArray([])
+			return PackedStringArray(["com.microsoft.onnxruntime:onnxruntime-android:1.16.0-rc1"])
 
 	func _get_name():
 		return _plugin_name

@@ -5,11 +5,8 @@ plugins {
     id("org.jetbrains.kotlin.android")
 }
 
-// TODO: Update value to your plugin's name.
-val pluginName = "GodotAndroidPluginTemplate"
-
-// TODO: Update value to match your plugin's package name.
-val pluginPackageName = "org.godotengine.plugin.android.template"
+val pluginName = "OpenWakeWord"
+val pluginPackageName = "com.bschoun.openwakeword"
 
 android {
     namespace = pluginPackageName
@@ -32,14 +29,19 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
+    //kotlinOptions {
+    //    jvmTarget = "17"
+    //}
+}
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
-
 dependencies {
     implementation("org.godotengine:godot:4.3.0.stable")
     // TODO: Additional dependencies should be added to export_plugin.gd as well.
+    implementation("com.microsoft.onnxruntime:onnxruntime-android:1.16.0-rc1")
 }
 
 // BUILD TASKS DEFINITION

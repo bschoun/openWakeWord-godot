@@ -1,19 +1,31 @@
-[gd_scene load_steps=2 format=3 uid="uid://cg3hylang5fxn"]
+[gd_scene load_steps=3 format=3 uid="uid://cg3hylang5fxn"]
 
-[ext_resource type="Script" path="res://main.gd" id="1_j0gfq"]
+[ext_resource type="Script" uid="uid://c8xae66vju5hd" path="res://main.gd" id="1_j0gfq"]
 
-[node name="Main" type="Node2D"]
+[sub_resource type="LabelSettings" id="LabelSettings_ig7tw"]
+font_size = 24
+font_color = Color(0, 1, 0, 1)
+
+[node name="Main" type="Node2D" node_paths=PackedStringArray("label", "button")]
 script = ExtResource("1_j0gfq")
+label = NodePath("Label")
+button = NodePath("Button")
 
 [node name="Button" type="Button" parent="."]
-anchors_preset = 14
-anchor_top = 0.5
-anchor_right = 1.0
-anchor_bottom = 0.5
-offset_left = 40.0
-offset_top = 250.0
-offset_right = 320.0
-offset_bottom = 312.0
-text = "Hello World"
+offset_left = 427.0
+offset_top = 312.0
+offset_right = 707.0
+offset_bottom = 374.0
+toggle_mode = true
+text = "Start"
 
-[connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
+[node name="Label" type="Label" parent="."]
+offset_left = 381.0
+offset_top = 419.0
+offset_right = 759.0
+offset_bottom = 576.0
+text = "WAKE WORD DETECTED"
+label_settings = SubResource("LabelSettings_ig7tw")
+horizontal_alignment = 1
+
+[connection signal="toggled" from="Button" to="." method="_on_start_stop_button_toggled"]
