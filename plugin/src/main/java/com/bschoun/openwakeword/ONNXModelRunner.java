@@ -17,23 +17,24 @@ public class ONNXModelRunner {
     private static final int BATCH_SIZE = 1; // Replace with your batch size
 
     AssetManager assetManager;
-    OrtSession session;
+    OrtSession[] sessions;
     OrtEnvironment env = OrtEnvironment.getEnvironment();
-    public ONNXModelRunner(AssetManager assetManager, String modelFilename) throws IOException, OrtException {
+    public ONNXModelRunner(AssetManager assetManager, String[] modelFilenames) throws IOException, OrtException {
         this.assetManager=assetManager;
+        this.sessions = new OrtSession[modelFilenames.length];
+        for(int i = 0; i < modelFilenames.length; ++i) {
+            try {
+                sessions[i] = env.createSession(readModelFile(assetManager, modelFilenames[i]));
+                Log.d("OpenWakeWord", "Created new ONNXModelRunner session.");
+            } catch (IOException e) {
+                if (e.getMessage() != null) {
+                    Log.d("OpenWakeWord", e.getMessage());
+                }
 
-        try {
-            session = env.createSession(readModelFile(assetManager, modelFilename));
-            Log.d("OpenWakeWord","Created new ONNXModelRunner session.");
-        } catch (IOException e) {
-            if (e.getMessage() != null) {
-                Log.d("OpenWakeWord",e.getMessage());
+                throw new RuntimeException(e);
             }
-
-            throw new RuntimeException(e);
+            // Load the ONNX model from the assets folder
         }
-        // Load the ONNX model from the assets folder
-
     }
 
     public float[][] get_mel_spectrogram(float[] inputArray) throws OrtException, IOException {
@@ -128,31 +129,33 @@ public class ONNXModelRunner {
         return null;
     }
 
-    public String predictWakeWord(float[][][] inputArray) throws OrtException {
-        float[][] result = new float[0][];
-        String resultant="";
+    public String[] predictWakeWord(float[][][] inputArray) throws OrtException {
+        float[][][] result = new float[this.sessions.length][0][];
+        String[] results = new String[this.sessions.length];
 
+        for(int i = 0; i < this.sessions.length; ++i) {
+            String resultant = "";
+            OnnxTensor inputTensor = null;
 
-        OnnxTensor inputTensor = null;
+            try {
+                inputTensor = OnnxTensor.createTensor(this.env, inputArray);
+                OrtSession.Result outputs = this.sessions[i].run(Collections.singletonMap((String)this.sessions[i].getInputNames().iterator().next(), inputTensor));
+                result[i] = (float[][])outputs.get(0).getValue();
+                resultant = String.format("%.5f", (double)result[i][0][0]);
+            } catch (OrtException e) {
+                e.printStackTrace();
+                Log.d("OpenWakeWord", e.getMessage());
+            } finally {
+                if (inputTensor != null) {
+                    inputTensor.close();
+                }
 
-        try {
-            // Create a tensor from the input array
-            inputTensor = OnnxTensor.createTensor(env, inputArray);
-            // Run the inference
-            OrtSession.Result outputs = session.run(Collections.singletonMap(session.getInputNames().iterator().next(), inputTensor));
-            // Extract the output tensor, convert it to the desired type
-            result=(float[][]) outputs.get(0).getValue();
-            resultant= String.format("%.5f", (double) result[0][0]);
+            }
 
-        } catch (OrtException e) {
-            e.printStackTrace();
-            Log.d("OpenWakeWord",e.getMessage());
+            results[i] = resultant;
         }
-        finally {
-            if (inputTensor != null) inputTensor.close();
-            // Add this to ensure the session is properly closed.
-        }
-        return resultant;
+
+        return results;
     }
     private byte[] readModelFile(AssetManager assetManager, String filename) throws IOException {
         try (InputStream is = assetManager.open(filename)) {

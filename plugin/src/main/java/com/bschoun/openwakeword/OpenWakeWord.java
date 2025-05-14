@@ -1,24 +1,19 @@
 package com.bschoun.openwakeword;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.util.Log;
-//import androidx.core.app.ActivityCompat;
-//import androidx.core.content.ContextCompat;
 
 import org.godotengine.godot.Godot;
 import org.godotengine.godot.plugin.GodotPlugin;
 import org.godotengine.godot.plugin.UsedByGodot;
 import org.godotengine.godot.plugin.SignalInfo;
 
+import java.io.File;
 import java.util.Set;
 import java.util.HashSet;
 public class OpenWakeWord extends GodotPlugin {
 
-    private static final int PERMISSION_REQUEST_RECORD_AUDIO = 200;
     ONNXModelRunner modelRunner;
     AssetManager assetManager;
 
@@ -37,8 +32,8 @@ public class OpenWakeWord extends GodotPlugin {
         // Define the signals this plugin will emit
         Set<SignalInfo> signals = new HashSet<>();
 
-        // Signal we emit when the wakeword is detected
-        signals.add(new SignalInfo("wakeword_detected"));
+        // Signal we emit when the wakeword is detected, with the index of the detected word
+        signals.add(new SignalInfo("wakeword_detected", Integer.class));
         return signals;
     }
 
@@ -51,44 +46,37 @@ public class OpenWakeWord extends GodotPlugin {
     }
 
     @UsedByGodot
-    public void startDetection(String model) {
+    public void startDetection(String[] models, int chunkSize) {
         final Activity activity = getActivity();
         activity.runOnUiThread((new Runnable() {
             @Override
             public void run() {
                 Log.d(getPluginName(), "Starting detection");
-                Context context = activity.getApplicationContext();
-                //Log.d("test", "TESTING 123");
+                for (int i=0; i<models.length; i++) {
+                    Log.d(getPluginName(), models[i]);
+                }
                 assetManager = activity.getApplicationContext().getAssets();
                 try {
-                    modelRunner = new ONNXModelRunner(assetManager, model);
+                    modelRunner = new ONNXModelRunner(assetManager, models);
                 }
                 catch (Exception e) {
                     Log.d(getPluginName(),e.getMessage());
                 }
-                // TODO: Handle this in Godot instead?
-                //if (checkAndRequestPermissions(context)) {
-                Model model = new Model(modelRunner);
-                recorder = new AudioRecorderThread(OpenWakeWord.this, modelRunner, model);
+                // Start model. Make sure Godot asks for correct permissions (RECORD_AUDIO) first
+                Model model = new Model(modelRunner, chunkSize);
+                recorder = new AudioRecorderThread(OpenWakeWord.this, modelRunner, model, chunkSize);
                 recorder.start(); // Start recording
-                //}
             }
-            /*private boolean checkAndRequestPermissions(Context context) {
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions((Activity)context, new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSION_REQUEST_RECORD_AUDIO);
-                    return false;
-                }
-                return true;
-            }*/
         }));
     }
 
     @UsedByGodot
     public void stopDetection() {
+        Log.d(getPluginName(), "Stopping detection");
         recorder.stopRecording();
     }
 
-    public void onDetected() {
-        emitSignal("wakeword_detected");
+    public void onDetected(int index) {
+        emitSignal("wakeword_detected", index);
     }
  }

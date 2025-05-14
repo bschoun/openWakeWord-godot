@@ -7,8 +7,8 @@ var _timer : Timer			# Timer that runs for 1 second after a detection
 
 var detected : bool = false 	# True for 1 second after a detection
 
-signal word_detected			# Signal emitted when word is detected
-
+signal word_detected(index)		# Signal emitted when word is detected, index of word detected
+signal permission_granted       # Signal emitted when audio permission is granted
 
 func _ready() -> void:
 	
@@ -37,21 +37,22 @@ func _audio_permission_granted():
 	if Engine.has_singleton(_plugin_name):
 		_android_plugin = Engine.get_singleton(_plugin_name)
 		_android_plugin.connect("wakeword_detected", _on_wakeword_detected)
+		permission_granted.emit()
 	else:
 		printerr("Couldn't find plugin " + _plugin_name)
 			
 			
-func start_detection(model_name):
+func start_detection(models : Array, chunk_size : int):
 	
 	# The plugin
 	if not _android_plugin: 
 		print("_android_plugin in null, cannot start detection.")
 		return
 		
-	# Start detection of word "Galaxy"
+	# Start detection of words
 	if not _android_plugin.isDetecting():
 		print("starting detection")
-		_android_plugin.startDetection(model_name)
+		_android_plugin.startDetection(models, chunk_size)
 	else:
 		print("already detecting")
 		
@@ -68,12 +69,12 @@ func stop_detection():
 		print("not detecting yet")
 			
 			
-func _on_wakeword_detected():
+func _on_wakeword_detected(index):
 	# To not have multiple detections at once, disallow detection after the initial detection for 1 second
 	if not detected:
 		detected = true
-		print("wakeword detected")
-		
+		print("wakeword detected " + str(index))
+		word_detected.emit()
 		# Start a 1 second timer
 		_timer = Timer.new()
 		add_child(_timer)

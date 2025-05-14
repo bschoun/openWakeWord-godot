@@ -2,7 +2,7 @@
 This is a Godot Android plugin for [OpenWakeWord](https://github.com/dscripka/openWakeWord). It is essentially the 
 [OpenWakeWord for Android](https://github.com/hasanatlodhi/OpenwakewordforAndroid/tree/main) project modified to be a Godot package.
 
-This package is currently configured to recognize the wake word "Galaxy" for my own personal project. You will need to train your own model and re-build the package to recognize a different wake word.
+This package is currently configured to recognize the wake words "Galaxy", "Sit", "Up" and "Down" for my own personal project. You will need to train your own model and re-build the package to recognize different wake words.
 
 Tested in Godot 4.3, on an Android phone and with a Meta Quest 3 headset!
 
@@ -22,7 +22,7 @@ You can use the included [Godot demo project](plugin/demo/project.godot) as a te
 - Install the Godot Android build template by clicking on `Project` -> `Install Android Build Template...`
 - In `Project` -> `Export...`, under `Android (Runnable)`, tick `Record Audio` on
 - Connect an Android device to your machine and run the demo
-- In the app, press the `Start` button and say "Galaxy". If it works, a label that says "WAKE WORD DETECTED" should appear
+- In the app, press the `Start` button and say one of the wake words ("Galaxy", "Sit", "Down", "Up"). If it works, a label that says "WAKE WORD DETECTED" should appear with the name of the .onnx file
 
 ## Pre-trained models
 The original [OpenWakeWord](https://github.com/dscripka/openWakeWord) project has some pre-trained models. Please see their page for more details.

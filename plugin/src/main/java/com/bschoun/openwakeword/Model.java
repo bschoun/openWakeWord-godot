@@ -20,7 +20,10 @@ public class Model {
     float[] raw_data_remainder = new float[0];
     float[][] melspectrogramBuffer;
     int accumulated_samples=0;
-    public Model(ONNXModelRunner modelRunner) {
+
+    int chunkSize = 1280;
+    public Model(ONNXModelRunner modelRunner, int chunkSize) {
+        this.chunkSize = chunkSize;
         melspectrogramBuffer = new float[76][32];
         for (int i = 0; i < melspectrogramBuffer.length; i++) {
             for (int j = 0; j < melspectrogramBuffer[i].length; j++) {
@@ -179,8 +182,10 @@ public class Model {
             raw_data_remainder = new float[0];
         }
 
-        if (this.accumulated_samples + audiobuffer.length >= 1280) {
-            int remainder = (this.accumulated_samples + audiobuffer.length) % 1280;
+        //if (this.accumulated_samples + audiobuffer.length >= 1280) {
+        if (this.accumulated_samples + audiobuffer.length >= chunkSize) {
+            //int remainder = (this.accumulated_samples + audiobuffer.length) % 1280;
+            int remainder = (this.accumulated_samples + audiobuffer.length) % chunkSize;
             if (remainder != 0) {
                 // Create an array for x_even_chunks that excludes the last 'remainder' elements of 'x'
                 float[] x_even_chunks = new float[audiobuffer.length - remainder];
@@ -211,13 +216,14 @@ public class Model {
         }
 
 
-        if (this.accumulated_samples >= 1280 && this.accumulated_samples % 1280 == 0) {
-
+        //if (this.accumulated_samples >= 1280 && this.accumulated_samples % 1280 == 0) {
+        if (this.accumulated_samples >= chunkSize && this.accumulated_samples % chunkSize == 0) {
             this.streamingMelSpectrogram(this.accumulated_samples);
 
             float[][][][] x = new float[1][76][32][1];
 
-            for (int i = (accumulated_samples / 1280) - 1; i >= 0; i--) {
+            //for (int i = (accumulated_samples / 1280) - 1; i >= 0; i--) {
+            for (int i = (accumulated_samples / chunkSize) - 1; i >= 0; i--) {
 
                 int ndx = -8 * i;
                 if (ndx == 0) {
@@ -282,11 +288,11 @@ public class Model {
 
     }
 
-    public String predict_WakeWord(float[] audiobuffer){
+    public String[] predict_WakeWord(float[] audiobuffer){
 
         n_prepared_samples=this.streaming_features(audiobuffer);
         float[][][] res=this.getFeatures(16,-1);
-        String result="";
+        String[] result;
         try {
             result=modelRunner.predictWakeWord(res);
         } catch (OrtException e) {
